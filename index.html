@@ -1,0 +1,195 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boarding Buddy</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f1f5f9;
+  margin: 0;
+  color: #172554;
+}
+header {
+  background: #123b70;
+  color: white;
+  padding: 24px 18px;
+}
+header h1 { margin: 0; }
+header p { margin-bottom: 0; }
+.container { padding: 18px; }
+.card {
+  background: white;
+  padding: 18px;
+  margin-bottom: 16px;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px #00000010;
+}
+h2 { font-size: 19px; }
+.countdown {
+  font-size: 30px;
+  font-weight: bold;
+  color: #087b50;
+}
+input {
+  padding: 12px;
+  width: 85%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+button {
+  background: #087b50;
+  color: white;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+.stage {
+  padding: 12px;
+  border-left: 4px solid #168b68;
+  margin: 12px 0;
+  background: #f0fdf4;
+  border-radius: 5px;
+}
+.stage label { display: block; }
+.stage input { width: auto; }
+.done { text-decoration: line-through; opacity: .5; }
+.map {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.map-point {
+  background: #e0edff;
+  border: 2px solid #2875bd;
+  padding: 12px;
+  width: 75%;
+  text-align: center;
+  border-radius: 10px;
+}
+.arrow { color: #087b50; font-size: 23px; }
+.small { color: #64748b; font-size: 13px; }
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>✈ Boarding Buddy</h1>
+<p>Your personal airport travel companion</p>
+</header>
+
+<div class="container">
+
+<div class="card">
+<h2>⏰ Boarding Countdown</h2>
+<p>Enter your boarding time:</p>
+<input type="datetime-local" id="boardingTime">
+<p class="countdown" id="countdown">Set boarding time</p>
+</div>
+
+<div class="card">
+<h2>📋 Your Boarding Checklist</h2>
+<p>Complete each stage as you move through the airport.</p>
+<div id="checklist"></div>
+<p id="progress">0 of 6 stages completed</p>
+</div>
+
+<div class="card">
+<h2>🗺️ Airport Route Map</h2>
+<p class="small">Demonstration route – not an official airport map.</p>
+
+<div class="map">
+<div class="map-point">🚪 Airport Entrance</div>
+<div class="arrow">↓</div>
+<div class="map-point">🎫 Check-in Counter</div>
+<div class="arrow">↓</div>
+<div class="map-point">🛂 Immigration</div>
+<div class="arrow">↓</div>
+<div class="map-point">🔍 Security Check</div>
+<div class="arrow">↓</div>
+<div class="map-point">🛍️ Departure Lounge</div>
+<div class="arrow">↓</div>
+<div class="map-point">🚶 Boarding Gate</div>
+<div class="arrow">↓</div>
+<div class="map-point">✈ Board Your Aircraft</div>
+</div>
+</div>
+
+<div class="card">
+<h2>🏪 Nearby Airport Facilities</h2>
+<p>🚻 Toilets – Find the nearest restroom.</p>
+<p>🛍️ Shops – Find airport shopping facilities.</p>
+<p>🍽️ Restaurants – Find somewhere to eat.</p>
+<p class="small">Facility locations will be connected to verified airport information in a later development stage.</p>
+</div>
+
+</div>
+
+<script>
+const stages = [
+"Arrive at airport",
+"Complete check-in",
+"Pass immigration",
+"Complete security check",
+"Proceed to departure lounge",
+"Go to boarding gate"
+];
+
+const checklist = document.getElementById("checklist");
+
+stages.forEach((stage, index) => {
+  const item = document.createElement("div");
+  item.className = "stage";
+  item.innerHTML = `
+    <label>
+      <input type="checkbox" onchange="updateProgress()">
+      ${index + 1}. ${stage}
+    </label>`;
+  checklist.appendChild(item);
+});
+
+function updateProgress() {
+  const boxes = document.querySelectorAll(
+    '#checklist input[type="checkbox"]'
+  );
+  const completed = [...boxes].filter(box => box.checked).length;
+
+  document.getElementById("progress").textContent =
+    completed + " of 6 stages completed";
+}
+
+function updateCountdown() {
+  const value = document.getElementById("boardingTime").value;
+  const display = document.getElementById("countdown");
+
+  if (!value) return;
+
+  const difference = new Date(value).getTime() - Date.now();
+
+  if (difference <= 0) {
+    display.textContent = "Boarding time reached!";
+    return;
+  }
+
+  const hours = Math.floor(difference / 3600000);
+  const minutes = Math.floor((difference % 3600000) / 60000);
+  const seconds = Math.floor((difference % 60000) / 1000);
+
+  display.textContent =
+    hours + "h " + minutes + "m " + seconds + "s";
+}
+
+document.getElementById("boardingTime")
+.addEventListener("change", updateCountdown);
+
+setInterval(updateCountdown, 1000);
+</script>
+
+</body>
+</html>
