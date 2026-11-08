@@ -191,5 +191,107 @@ document.getElementById("boardingTime")
 setInterval(updateCountdown, 1000);
 </script>
 
+
+<div class="card" id="movementTest">
+  <h2>📍 Boarding Buddy — Live Movement Test</h2>
+  <p id="gpsStatus">GPS: Not started</p>
+  <p id="coordinates">Location: Waiting</p>
+  <p id="accuracy">Accuracy: Waiting</p>
+  <p id="motionStatus">Motion sensor: Not tested</p>
+  <p id="movement">Movement: Waiting</p>
+  <button onclick="startMovementTest()">
+    Start Live Movement Test
+  </button>
+</div>
+
+<script>
+let lastPosition = null;
+let lastMotion = 0;
+let movementDetected = false;
+
+function startMovementTest() {
+  if (!navigator.geolocation) {
+    document.getElementById("gpsStatus").textContent =
+      "GPS: Not supported";
+    return;
+  }
+
+  document.getElementById("gpsStatus").textContent =
+    "GPS: Requesting permission...";
+
+  navigator.geolocation.watchPosition(
+    position => {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      const accuracy = position.coords.accuracy;
+
+      document.getElementById("gpsStatus").textContent =
+        "GPS: Receiving location";
+
+      document.getElementById("coordinates").textContent =
+        "Location: " + lat.toFixed(6) + ", " + lon.toFixed(6);
+
+      document.getElementById("accuracy").textContent =
+        "Accuracy: " + Math.round(accuracy) + " metres";
+
+      if (lastPosition) {
+        const distance = Math.sqrt(
+          Math.pow((lat - lastPosition.lat) * 111320, 2) +
+          Math.pow((lon - lastPosition.lon) * 111320 *
+          Math.cos(lat * Math.PI / 180), 2)
+        );
+
+        document.getElementById("movement").textContent =
+          "GPS movement since last update: " +
+          distance.toFixed(2) + " metres";
+      }
+
+      lastPosition = {lat, lon};
+    },
+    error => {
+      document.getElementById("gpsStatus").textContent =
+        "GPS error: " + error.message;
+    },
+    {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 20000
+    }
+  );
+
+  if ("DeviceMotionEvent" in window) {
+    window.addEventListener("devicemotion", event => {
+      const a = event.accelerationIncludingGravity;
+
+      if (!a || a.x === null) return;
+
+      document.getElementById("motionStatus").textContent =
+        "Motion sensor: Active";
+
+      const force = Math.sqrt(
+        a.x * a.x + a.y * a.y + a.z * a.z
+      );
+
+      const now = Date.now();
+
+      if (Math.abs(force - 9.81) > 2 && now - lastMotion > 400) {
+        lastMotion = now;
+        movementDetected = true;
+
+        document.getElementById("movement").textContent =
+          "Movement detected by phone sensor";
+      }
+    });
+
+    document.getElementById("motionStatus").textContent =
+      "Motion sensor: Listening";
+  } else {
+    document.getElementById("motionStatus").textContent =
+      "Motion sensor: Not supported";
+  }
+}
+</script>
+
+
 </body>
 </html>
