@@ -291,6 +291,83 @@ function startMovementTest() {
   }
 }
 </script>
+<!-- LIVE GPS MAP -->
+<div class="card">
+  <h2>🔴 My Live Location</h2>
+  <p>Follow your position as you move.</p>
+
+  <div id="liveMap" style="height:350px;width:100%;border-radius:12px;"></div>
+
+  <button onclick="startLiveMap()">Show My Live Location</button>
+  <p id="mapStatus">Waiting for GPS...</p>
+</div>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+const liveMap = L.map('liveMap').setView([0, 0], 2);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(liveMap);
+
+const redIcon = L.divIcon({
+  className: '',
+  html: '<div style="background:red;width:20px;height:20px;border-radius:50%;border:3px solid white;box-shadow:0 0 8px #555;"></div>',
+  iconSize: [26, 26],
+  iconAnchor: [13, 13]
+});
+
+let myMarker = null;
+let liveWatch = null;
+
+function startLiveMap() {
+  if (!navigator.geolocation) {
+    document.getElementById('mapStatus').textContent =
+      'GPS is not supported';
+    return;
+  }
+
+  document.getElementById('mapStatus').textContent =
+    'Finding your location...';
+
+  liveWatch = navigator.geolocation.watchPosition(
+    position => {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+
+      const location = [lat, lon];
+
+      if (!myMarker) {
+        myMarker = L.marker(location, {
+          icon: redIcon
+        }).addTo(liveMap);
+
+        myMarker.bindPopup('You are here').openPopup();
+      } else {
+        myMarker.setLatLng(location);
+      }
+
+      liveMap.setView(location, 19);
+
+      document.getElementById('mapStatus').textContent =
+        'Your location is being tracked.';
+    },
+    error => {
+      document.getElementById('mapStatus').textContent =
+        'GPS error: ' + error.message;
+    },
+    {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 20000
+    }
+  );
+}
+</script>
 
 
 </body>
